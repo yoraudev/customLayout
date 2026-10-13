@@ -1,0 +1,634 @@
+/* Takes the place of the sidebar and the page inside Discord's app grid, below the title bar and notices */
+.vc-customLayout-host {
+    /* themes that space out Discord's panels usually expose that spacing as --gap */
+    --vc-custom-layout-gap: var(--gap, 0px);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    grid-column: start / end;
+    grid-row: noticeEnd / end;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* The sidebar could not be taken over, so leave it where it is */
+.vc-customLayout-host-besideSidebar {
+    grid-column: channelsEnd / end;
+}
+
+.vc-customLayout-root {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 0;
+    padding: 0 var(--vc-custom-layout-gap) var(--vc-custom-layout-gap);
+}
+
+.vc-customLayout-split {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.vc-customLayout-split-row {
+    flex-direction: row;
+}
+
+.vc-customLayout-split-column {
+    flex-direction: column;
+}
+
+.vc-customLayout-cell {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.vc-customLayout-cell-hidden {
+    display: none;
+}
+
+/* The space between two panels. The part you can grab hangs a little over both neighbours */
+.vc-customLayout-divider {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 var(--vc-custom-layout-gap);
+}
+
+.vc-customLayout-divider::after {
+    content: "";
+    position: absolute;
+    border-radius: 3px;
+    transition: background-color 0.15s ease 0.1s;
+}
+
+.vc-customLayout-split-row > .vc-customLayout-divider {
+    cursor: ew-resize;
+}
+
+.vc-customLayout-split-row > .vc-customLayout-divider::after {
+    inset: 0 -3px;
+}
+
+.vc-customLayout-split-column > .vc-customLayout-divider {
+    cursor: ns-resize;
+}
+
+.vc-customLayout-split-column > .vc-customLayout-divider::after {
+    inset: -3px 0;
+}
+
+.vc-customLayout-divider:hover::after,
+.vc-customLayout-divider:active::after {
+    background-color: var(--brand-500);
+}
+
+.vc-customLayout-slot {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+
+    /* Keeps what happens inside a panel (a new message, a hover) from making the browser lay out and repaint the others */
+    contain: layout paint;
+}
+
+/* A panel whose size does not depend on its content can be cut off from the rest of the page completely */
+.vc-customLayout-slot-fixedSize {
+    contain: strict;
+}
+
+/* Themes can have their title bar buttons follow the header (see below), which they could not find through containment */
+.vc-customLayout-slot[data-vc-slot="header"] {
+    contain: none;
+}
+
+.vc-customLayout-slot-content,
+.vc-customLayout-panel {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.vc-customLayout-panel {
+    position: relative;
+    overflow: hidden;
+
+    /* Discord stacks things inside its panels with large z-indexes, keep those from leaking into other panels */
+    isolation: isolate;
+
+    /* The lists leave room at the bottom for the user panel that normally floats over them. This value makes that room 0 */
+    --custom-app-panels-height: 12px;
+}
+
+/*
+ * Some themes shrink the title bar and float its buttons (inbox, window controls) over the top right corner,
+ * where the channel header normally is. Make those follow the header to wherever it has been put.
+ * This does nothing to buttons that are still inside the title bar.
+ */
+.vc-customLayout-panel[data-vc-panel="header"] {
+    anchor-name: --vc-custom-layout-header;
+}
+
+/* An anchor has to be inside the box the buttons are positioned in. That is the title bar itself unless it is unpositioned */
+[class*="base_"]:has(> [class*="content_"] > .vc-customLayout-host) > [class*="bar_"] {
+    position: static;
+}
+
+/* The window title fills the title bar by being stretched across it, so it needs the bar height spelled out now */
+[class*="base_"]:has(> [class*="content_"] > .vc-customLayout-host) > [class*="bar_"] > [class*="title_"] {
+    bottom: auto;
+    height: var(--custom-app-top-bar-height);
+}
+
+/* These only mean something for buttons a theme has taken out of the flow. Otherwise they are invalid and ignored */
+[class*="base_"]:has(> [class*="content_"] > .vc-customLayout-host) > [class*="bar_"] > [class*="trailing_"] {
+    position-anchor: --vc-custom-layout-header;
+    top: anchor(top) !important;
+    right: calc(anchor(right) + var(--border-thickness, 0px)) !important;
+    bottom: anchor(bottom) !important;
+    align-self: center;
+}
+
+.vc-customLayout-parking {
+    display: none;
+}
+
+/*
+ * Discord and themes size, place and space these out for the stock layout.
+ * Inside a panel they just fill it, and the spacing between panels is ours.
+ */
+.vc-customLayout-panel > * {
+    position: relative !important;
+    inset: auto !important;
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0;
+    min-height: 0;
+    margin: 0 !important;
+}
+
+.vc-customLayout-panel:not([data-vc-panel="header"]) > * {
+    height: auto !important;
+}
+
+.vc-customLayout-panel[data-vc-panel="guilds"] > * {
+    flex: 0 0 auto !important;
+    width: var(--custom-guild-list-width) !important;
+}
+
+.vc-customLayout-panel[data-vc-panel="chat"] > * {
+    padding: 0 !important;
+}
+
+/* The header and the user panel keep their own height, however tall the space they are put in */
+.vc-customLayout-panel[data-vc-panel="header"] > * {
+    flex: 0 0 auto !important;
+}
+
+.vc-customLayout-panel[data-vc-panel="user"] > * {
+    align-self: flex-end;
+}
+
+/* The member list is a column of fixed width rows, so its panel stays that wide instead of stretching around it */
+.vc-customLayout-panel[data-vc-panel="members"] > * {
+    flex: 0 0 auto !important;
+}
+
+/* Our own member list for when it lies flat: columns of members that scroll sideways */
+.vc-customLayout-members {
+    display: flex;
+    overflow: hidden;
+}
+
+.vc-customLayout-panel[data-vc-panel="members"] > .vc-customLayout-members {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+.vc-customLayout-members-scroller {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto hidden;
+    scrollbar-width: none;
+}
+
+.vc-customLayout-member-column {
+    display: flex;
+    flex: 0 0 240px;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-height: 0;
+    padding: 0 8px;
+}
+
+.vc-customLayout-member-group {
+    display: flex;
+    flex: 0 0 40px;
+    align-items: flex-end;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 0 8px 6px;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.vc-customLayout-member-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden auto;
+    scrollbar-width: none;
+}
+
+.vc-customLayout-member-rows {
+    position: relative;
+}
+
+.vc-customLayout-member,
+.vc-customLayout-member-placeholder {
+    position: absolute;
+    inset-inline: 0;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 44px;
+}
+
+.vc-customLayout-member {
+    gap: 12px;
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.vc-customLayout-member:hover {
+    background: var(--background-mod-subtle, var(--background-modifier-hover));
+}
+
+.vc-customLayout-member-name {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-default, var(--text-normal));
+    font-size: 16px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* the gradient is the background, and only shows through the letters */
+.vc-customLayout-member-name-gradient {
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.vc-customLayout-member-placeholder::before {
+    content: "";
+    width: 32px;
+    height: 32px;
+    margin-inline-start: 8px;
+    border-radius: 50%;
+    background: var(--background-mod-subtle, var(--background-modifier-hover));
+}
+
+/*
+ * The user panel standing upright: between a left and a right neighbour it fills the height,
+ * with the avatar and name stacked above the buttons. The buttons wrap, so a narrow panel turns into a strip.
+ */
+.vc-customLayout-slot[data-vc-flow="vertical"] .vc-customLayout-panel[data-vc-panel="user"] > * {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    justify-content: flex-end;
+}
+
+.vc-customLayout-slot[data-vc-flow="vertical"] .vc-customLayout-panel[data-vc-panel="user"] :has(> [class*="accountPopoutButtonWrapper_"]) {
+    flex-direction: column;
+    gap: var(--space-xs);
+    height: auto !important;
+    padding: var(--space-xs);
+}
+
+.vc-customLayout-slot[data-vc-flow="vertical"] .vc-customLayout-panel[data-vc-panel="user"] [class*="accountPopoutButtonWrapper_"] {
+    flex: 0 0 auto;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    text-align: center;
+}
+
+.vc-customLayout-slot[data-vc-flow="vertical"] .vc-customLayout-panel[data-vc-panel="user"] :has(> [class*="accountPopoutButtonWrapper_"]) > :not([class*="accountPopoutButtonWrapper_"]) {
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/*
+ * The server list lying flat: between a top and a bottom neighbour it becomes a row of servers.
+ * Discord only builds it as a column, so its parts are turned sideways here.
+ */
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] > * {
+    flex: 1 1 auto !important;
+    align-self: flex-start;
+    width: auto !important;
+    height: var(--custom-guild-list-width) !important;
+}
+
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] [role="tree"] {
+    flex-direction: row;
+    min-width: 0;
+}
+
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] [role="tree"] > :first-child {
+    flex: 1 1 auto;
+    flex-direction: row !important;
+    align-items: center;
+    min-width: 0;
+    overflow: auto hidden !important;
+    padding: 0 !important;
+    scrollbar-width: none;
+}
+
+/* the servers themselves, and the servers inside an open folder */
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] [role="group"] {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: row !important;
+    align-items: center;
+    height: auto !important;
+}
+
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] [role="group"] > *,
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] [role="tree"] > :first-child > * {
+    flex: 0 0 auto;
+}
+
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] [class*="folderGroup_"] {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] [class*="folderGroupBackground_"] {
+    inset-inline: 4px;
+    width: auto;
+}
+
+/* the "new mentions above / below" jump buttons only make sense for a column */
+.vc-customLayout-slot[data-vc-flow="horizontal"] .vc-customLayout-panel[data-vc-panel="guilds"] [class*="unreadMentionsIndicator"] {
+    display: none;
+}
+
+/* Extra chat panels */
+.vc-customLayout-chat {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--background-gradient-chat, var(--background-base-lower));
+}
+
+.vc-customLayout-chat-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    height: 48px;
+    padding: 0 8px 0 16px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.vc-customLayout-chat-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-strong, var(--header-primary));
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vc-customLayout-chat-close,
+.vc-customLayout-overlay-close {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: none;
+    color: var(--interactive-icon-default, var(--interactive-normal));
+    cursor: pointer;
+}
+
+.vc-customLayout-overlay-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--background-base-lowest);
+}
+
+.vc-customLayout-chat-close:hover,
+.vc-customLayout-overlay-close:hover {
+    background: var(--background-mod-subtle, var(--background-modifier-hover));
+    color: var(--interactive-icon-hover, var(--interactive-hover));
+}
+
+.vc-customLayout-chat-empty {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Layout editor */
+.vc-customLayout-host-editing {
+    /* always leave something to grab between panels, even without a theme gap */
+    --vc-custom-layout-gap: max(var(--gap, 0px), 8px);
+}
+
+.vc-customLayout-host-editing .vc-customLayout-cell {
+    min-width: 56px;
+    min-height: 40px;
+}
+
+/* Dims the panel and keeps its content from being clicked while it can be dragged around */
+.vc-customLayout-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 4px;
+    border: 2px dashed var(--border-strong, var(--border-subtle));
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--background-base-lowest) 45%, transparent);
+    color: var(--text-default, var(--text-normal));
+    text-align: center;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+
+.vc-customLayout-overlay:hover {
+    border-color: var(--brand-500);
+}
+
+.vc-customLayout-overlay-dragged {
+    opacity: 0.4;
+    cursor: grabbing;
+}
+
+.vc-customLayout-overlay-label,
+.vc-customLayout-overlay-hint {
+    box-sizing: border-box;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--background-base-lowest);
+}
+
+.vc-customLayout-overlay-label {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vc-customLayout-overlay-hint {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vc-customLayout-drop-indicator {
+    position: absolute;
+    z-index: 3;
+    box-sizing: border-box;
+    border: 2px solid var(--brand-500);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--brand-500) 35%, transparent);
+    pointer-events: none;
+}
+
+.vc-customLayout-drag-ghost {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    will-change: transform;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--brand-500);
+    color: var(--white, #fff);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Sits above the layout instead of floating over it, so it never hides a panel */
+.vc-customLayout-bar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0 var(--vc-custom-layout-gap) var(--vc-custom-layout-gap);
+    padding: 6px 8px;
+
+    /* some themes float the title bar buttons over the top right corner and expose how much room they take */
+    padding-inline-end: calc(8px + var(--top-bar-right-margin, 0px));
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--background-base-lower);
+    color: var(--text-default, var(--text-normal));
+    font-size: 14px;
+}
+
+.vc-customLayout-bar-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: end;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vc-customLayout-bar-select,
+.vc-customLayout-bar-input,
+.vc-customLayout-bar-button {
+    box-sizing: border-box;
+    height: 28px;
+    padding: 0 8px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    background: var(--background-base-lowest);
+    color: inherit;
+    font: inherit;
+    color-scheme: light dark;
+}
+
+.vc-customLayout-bar-input {
+    width: 130px;
+}
+
+.vc-customLayout-bar-button {
+    cursor: pointer;
+}
+
+.vc-customLayout-bar-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vc-customLayout-bar-button:hover:not(:disabled) {
+    background: var(--background-mod-subtle, var(--background-modifier-hover));
+}
+
+.vc-customLayout-bar-button-primary,
+.vc-customLayout-bar-button-primary:hover:not(:disabled) {
+    border-color: transparent;
+    background: var(--brand-500);
+    color: var(--white, #fff);
+}
+
+.vc-customLayout-bar-check {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.vc-customLayout-bar-separator {
+    align-self: stretch;
+    width: 1px;
+    background: var(--border-subtle);
+}
